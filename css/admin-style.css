@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
+
+.code_notes{
+    font-family: "Source Code Pro", monospace;
+    font-optical-sizing: auto;
+    background: #202124;
+    padding: 2px 5px;
+    color: #FFF;
+    border-radius: 5px;
+}
+
+ul.list_notes{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+ul.list_notes li{
+    margin: 0;
+    padding: 0;
+}
+
+a[href="post-new.php?post_type=fcm_token"],
+a[href="https://app-newpsalmist-staging.thechurchonline.com/wp-admin/post-new.php?post_type=fcm_token"],
+body.post-type-fcm_token #major-publishing-actions{
+    display: none !important;
+}
+
+a[href="post-new.php?post_type=contact_form"],
+a[href="https://app-newpsalmist-staging.thechurchonline.com/wp-admin/post-new.php?post_type=contact_form"],
+body.post-type-contact_form #major-publishing-actions{
+    display: none !important;
+}
