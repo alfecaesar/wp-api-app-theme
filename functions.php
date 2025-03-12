@@ -1,5 +1,6 @@
 <?php
 
+// Enqueue admin styles
 add_action( 'admin_enqueue_scripts', 'load_admin_style' );
 function load_admin_style() {
     wp_enqueue_style( 'admin_css', get_template_directory_uri() . '/css/admin-style.css', false, rand(1, 999) );
@@ -16,66 +17,6 @@ add_theme_support('post-thumbnails');
 
 // Disable Block Editor
 add_filter('use_block_editor_for_post', '__return_false');
-
-
-// Register API endpoint to retrieve pages
-function register_api_pages_endpoint() {
-    register_rest_route('tco-api/v1', '/pages', [
-        'methods' => 'GET',
-        'callback' => 'get_all_pages',
-        'permission_callback' => '__return_true', 
-    ]);
-}
-add_action('rest_api_init', 'register_api_pages_endpoint');
-
-function get_all_pages() {
-    $pages = get_pages();
-    $response = [];
-
-    foreach ($pages as $page) {
-        $response[] = [
-            'id' => $page->ID,
-            'title' => $page->post_title,
-            'content' => apply_filters('the_content', $page->post_content),
-            'slug' => $page->post_name,
-            'link' => get_permalink($page->ID),
-            'featured_image' => $featured_image_url ? $featured_image_url : null, // Include the image URL or null
-        ];
-    }
-
-    return $response;
-}
-
-// Register API endpoint to retrieve menus
-function register_api_menus_endpoint() {
-    register_rest_route('tco-api/v1', '/menus/(?P<menu_slug>[a-zA-Z0-9_-]+)', [
-        'methods' => 'GET',
-        'callback' => 'get_menu_items',
-        'permission_callback' => '__return_true', 
-    ]);
-}
-add_action('rest_api_init', 'register_api_menus_endpoint');
-
-function get_menu_items($data) {
-    $menu_slug = $data['menu_slug'];
-    $menu = wp_get_nav_menu_items($menu_slug);
-
-    if (!$menu) {
-        return new WP_Error('no_menu', 'Menu not found', ['status' => 404]);
-    }
-
-    $response = [];
-    foreach ($menu as $item) {
-        $response[] = [
-            'id' => $item->ID,
-            'title' => $item->title,
-            'url' => $item->url,
-            'parent' => $item->menu_item_parent,
-        ];
-    }
-
-    return $response;
-}
 
 
 // Register custom post types
@@ -115,7 +56,7 @@ function register_custom_post_types() {
         ],
         'public' => true,
         'show_in_rest' => true, 
-        'supports' => ['title', 'editor'], 
+        'supports' => ['title', 'editor', 'custom-fields'], 
         'has_archive' => true,
         'show_ui' => true,
         'capability_type' => 'post',
@@ -170,6 +111,22 @@ function register_custom_post_types() {
         'map_meta_cap' => true,
         'rest_controller_class' => 'WP_REST_Posts_Controller',
     ]);
+    
+    // Media Custom Post Type
+    register_post_type('media_videos', [
+        'labels' => [
+            'name'          => 'Media (Videos)',
+            'singular_name' => 'Media (Video)',
+        ],
+        'public'        => true,
+        'show_in_rest'  => true, 
+        'supports'      => ['title', 'thumbnail', 'custom-fields'], 
+        'meta_box_cb'   => false, 
+        'has_archive'   => true,
+        'show_ui'       => true,
+        'taxonomies'    => ['category'],
+        'rest_controller_class' => 'WP_REST_Posts_Controller',
+    ]);
 }
 add_action('init', 'register_custom_post_types');
 
@@ -188,7 +145,15 @@ function register_custom_meta_fields() {
         'single' => true,
         'show_in_rest' => true,
     ]);
-
+    
+    // Notes Meta Fields
+    register_post_meta('notes', 'author_id', [
+        'type' => 'string',
+        'description' => 'Author Identifier',
+        'single' => true,
+        'show_in_rest' => true, 
+    ]);
+    
     // Prayer Request Meta Fields
     register_post_meta('prayer_request', 'anonymous_post', [
         'type' => 'boolean',
@@ -240,6 +205,8 @@ function register_custom_meta_fields() {
         'single' => true,
         'show_in_rest' => true,
     ]);
+
+    // Contact Form Meta Fields
     register_post_meta('contact_form', 'first_name', [
         'type' => 'string',
         'description' => 'first name',
@@ -267,6 +234,20 @@ function register_custom_meta_fields() {
     register_post_meta('contact_form', 'comments', [
         'type' => 'string',
         'description' => 'comments',
+        'single' => true,
+        'show_in_rest' => true,
+    ]);
+
+    // Media Meta Fields
+    register_post_meta('media_videos', 'youtube_link', [
+        'type' => 'string',
+        'description' => 'Youtube URL/Link',
+        'single' => true,
+        'show_in_rest' => true,
+    ]);
+    register_post_meta('media_videos', 'date', [
+        'type' => 'string',
+        'description' => 'Date',
         'single' => true,
         'show_in_rest' => true,
     ]);
@@ -342,6 +323,7 @@ function handle_prayer_request_submission(WP_REST_Request $request) {
 function handle_notes_submission(WP_REST_Request $request) {
     $title = sanitize_text_field($request->get_param('title'));
     $content = sanitize_text_field($request->get_param('content'));
+    $author_id = sanitize_text_field($request->get_param('author_id'));
 
     if (empty($title) || empty($content)) {
         return new WP_Error('missing_fields', 'Title and content are required.', ['status' => 400]);
@@ -353,6 +335,8 @@ function handle_notes_submission(WP_REST_Request $request) {
         'post_content' => $content,
         'post_status' => 'publish', 
     ]);
+    
+    update_post_meta($post_id, 'author_id', $author_id);
 
     if (is_wp_error($post_id)) {
         return new WP_Error('insert_failed', 'Failed to create the note.', ['status' => 500]);
@@ -455,6 +439,23 @@ function register_route() {
 add_action('rest_api_init', 'register_route');
 
 
+function notes_meta_box($post) {
+    ?>
+    <p class="paragraph_notes">Custom Fields:</p>
+    <ul class="list_notes">
+        <li><span class="code_notes">author_id</span> : string | Author Identifier</li>
+    </ul>
+
+    <?php
+}
+
+// Add custom meta boxes for Notes
+function notes_notes_meta_boxes() {
+    add_meta_box('notes_notes', 'NOTES', 'notes_meta_box', 'notes', 'normal');
+}
+add_action('add_meta_boxes', 'notes_notes_meta_boxes');
+
+
 function events_rsvp_meta_box($post) {
     ?>
     <p class="paragraph_notes">Custom Fields:</p>
@@ -467,7 +468,7 @@ function events_rsvp_meta_box($post) {
     <?php
 }
 
-// Add custom meta boxes for Notes
+// Add custom meta boxes for Events
 function events_rsvp_notes_meta_boxes() {
     add_meta_box('events_rsvp_notes', 'NOTES', 'events_rsvp_meta_box', 'events_rsvp', 'normal');
 }
@@ -529,11 +530,33 @@ function contact_form_meta_box($post) {
     <?php
 }
 
-// Add custom meta boxes for FCM Token
+// Add custom meta boxes for Contact Form
 function contact_form_notes_meta_boxes() {
     add_meta_box('contact_form_notes', 'NOTES', 'contact_form_meta_box', 'contact_form', 'normal');
 }
 add_action('add_meta_boxes', 'contact_form_notes_meta_boxes');
+
+
+
+function media_videos_meta_box($post) {
+    ?>
+    <p class="paragraph_notes">Custom Fields:</p>
+    <ul class="list_notes">
+        <li><span class="code_notes">title</span> : string | post title</li>
+        <li><span class="code_notes">featured_image</span> : url | post featured image</li>
+        <li><span class="code_notes">categories</span> : string | post categories</li>
+        <li><span class="code_notes">youtube_link</span> : string | youtube url/link</li>
+        <li><span class="code_notes">date</span> : string | date</li>
+    </ul>
+
+    <?php
+}
+
+// Add custom meta boxes for Media
+function media_videos_notes_meta_boxes() {
+    add_meta_box('media_videos_notes', 'NOTES', 'media_videos_meta_box', 'media_videos', 'normal');
+}
+add_action('add_meta_boxes', 'media_videos_notes_meta_boxes');
 
 
 // Filter the API response for the events_rsvp post type
@@ -603,6 +626,7 @@ function filter_notes_api_response($response, $post, $request) {
         'id' => $post->ID,
         'title' => $response->data['title']['rendered'], 
         'content' => $response->data['content']['rendered'], 
+        'author_id' => get_post_meta($post->ID, 'author_id', true),
     ];
 
     $response->data = $filtered_data;
@@ -615,6 +639,27 @@ function filter_notes_api_response($response, $post, $request) {
     return $response;
 }
 add_filter('rest_prepare_notes', 'filter_notes_api_response', 10, 3);
+
+// Add custom query parameter for filtering by author_id
+function add_author_id_filter_to_rest_query($args, $request) {
+    // Check if the 'author_id' parameter exists in the request
+    if (isset($request['author_id'])) {
+        $meta_query = [
+            'key' => 'author_id',
+            'value' => $request['author_id'],
+            'compare' => '='
+        ];
+
+        if (isset($args['meta_query'])) {
+            $args['meta_query'][] = $meta_query;
+        } else {
+            $args['meta_query'] = [$meta_query];
+        }
+    }
+
+    return $args;
+}
+add_filter('rest_notes_query', 'add_author_id_filter_to_rest_query', 10, 2);
 
 
 // Filter the API response for the FCM Token post type
@@ -657,6 +702,40 @@ function filter_contact_form_api_response($response, $post, $request) {
     return $response;
 }
 add_filter('rest_prepare_contact_form', 'filter_contact_form_api_response', 10, 3);
+
+// Filter the API response for the media post type
+function filter_media_videos_api_response($response, $post, $request) {
+    $categories = get_the_category($post->ID);
+    $category_data = [];
+    
+    if (!empty($categories)) {
+        foreach ($categories as $category) {
+            $category_data[] = [
+                'id'   => $category->term_id,
+                'name' => $category->name,
+            ];
+        }
+    }
+    
+    $filtered_data = [
+        'id' => $post->ID,
+        'title' => $response->data['title']['rendered'], 
+        'featured_image' => get_the_post_thumbnail_url($post->ID, 'full'),
+        'categories'     => $category_data,
+        'youtube_link' => get_post_meta($post->ID, 'youtube_link', true), 
+        'date' => get_post_meta($post->ID, 'date', true), 
+    ];
+
+    $response->data = $filtered_data;
+    
+    $post_date = $post->post_date; 
+    $formatted_date = str_replace('T', ' ', $post_date);
+
+    $response->data['published_datetime'] = $formatted_date;
+
+    return $filtered_data;
+}
+add_filter('rest_prepare_media_videos', 'filter_media_videos_api_response', 10, 3);
 
 
 // API endpoint to delete a prayer request post
@@ -705,6 +784,7 @@ function update_note_endpoint(WP_REST_Request $request) {
     $note_id = $request->get_param('id');
     $note_title = $request->get_param('title');
     $note_content = $request->get_param('content');
+    $note_author_id = $request->get_param('author_id');
 
     $note = get_post($note_id);
     if (!$note || $note->post_type !== 'notes') {
@@ -735,6 +815,7 @@ function update_note_endpoint(WP_REST_Request $request) {
         return new WP_REST_Response([
             'message' => 'Note updated successfully.',
             'note_id' => $note_id,
+            'author_id' => $note_author_id,
             'updated_fields' => $update_data,
         ], 200);
     }
@@ -865,8 +946,12 @@ function send_fcm_notifications($authorization_token) {
 
     if ($query->have_posts()) :
         while ($query->have_posts()) : $query->the_post();
+			
+            // $token = get_post_meta(get_the_ID(), 'fcm_token', true) ?: convertAPNSToFCMToken($authorization_token, get_post_meta(get_the_ID(), 'apns_token', true));
             $token = get_post_meta(get_the_ID(), 'fcm_token', true) ?: get_post_meta(get_the_ID(), 'apns_token', true);
             $platform = get_post_meta(get_the_ID(), 'platform', true);
+            $createdAt = get_the_date() . ' at ' . get_the_time();
+			$updatedAt = get_the_modified_date('F j, Y') . ' at ' . get_the_modified_time('g:i a');
             if ($token) {
                 $data = array(
                     'message' => array(
@@ -909,16 +994,18 @@ function send_fcm_notifications($authorization_token) {
                 } else {
                     $status_code = wp_remote_retrieve_response_code($response);
                     if ($status_code === 200) {
-                        $status = 'Success';
+                        $status = '<span style="color:green;font-weight:700;">SUCCESS</span>';
                     } else {
-                        $status = 'Failed: ' . wp_remote_retrieve_response_message($response);
+                        $status = '<span style="color:red;">FAILED: ' . wp_remote_retrieve_response_message($response) . '</span>';
                     }
                 }
 
                 $tokens_status[] = array(
                     'token' => $token,
                     'status' => $status,
-                    'platform' => $platform
+                    'platform' => $platform,
+                    'created_at' => $createdAt,
+					'updated_at' => $updatedAt,
                 );
             }
         endwhile;
@@ -982,6 +1069,8 @@ function display_fcm_button() {
                     <tr>
                         <th>Token</th>
                         <th>Platform</th>
+                        <th>Created At</th>
+						<th>Updated At</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -990,7 +1079,9 @@ function display_fcm_button() {
                         <tr>
                             <td><?php echo esc_html($item['token']); ?></td>
                             <td><?php echo esc_html($item['platform']); ?></td>
-                            <td><?php echo esc_html($item['status']); ?></td>
+                            <td><?php echo esc_html($item['created_at']); ?></td>
+							<td><?php echo esc_html($item['updated_at']); ?></td>
+                            <td><?php echo $item['status']; ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -1000,4 +1091,64 @@ function display_fcm_button() {
         <?php endif; ?>
     </div>
     <?php
+}
+
+
+function convertAPNSToFCMToken($firebaseToken, $token) {
+    // Prepare the data payload
+    $data = [
+        "application" => "com.newPsalmistBaptistChurch",
+        "sandbox" => true,
+        "apns_tokens" => [$token],
+    ];
+
+    $url = 'https://iid.googleapis.com/iid/v1:batchImport';
+
+    // Set headers
+    $headers = [
+        "Content-Type: application/json",
+        "Authorization: Bearer $firebaseToken",
+        "access_token_auth: true"
+    ];
+
+    // Initialize cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+    // Execute the request and get the response
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        echo 'Curl error: ' . curl_error($ch);
+        curl_close($ch);
+        return;
+    }
+
+    curl_close($ch);
+
+    // Log the response for debugging
+    echo "Response conversion: $response\n";
+
+    // Process the response
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($httpCode == 200) {
+        $responseBody = json_decode($response, true);
+
+        if (isset($responseBody['results']) && is_array($responseBody['results'])) {
+            $results = $responseBody['results'];
+            if (!empty($results)) {
+                $result = $results[0];
+
+                // Extract the registration token
+                if (isset($result['registration_token'])) {
+                    $registrationToken = $result['registration_token'];					
+					return $registrationToken;
+                }
+            }
+        }
+    }
 }
