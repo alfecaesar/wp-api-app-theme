@@ -439,8 +439,29 @@ function register_route() {
 add_action('rest_api_init', 'register_route');
 
 
+// Add custom meta boxes for Notifications
+function notifications_meta_box($post) {
+    ?>
+    <ul class="list_notes">
+        <li><span class="code_notes">id</span> : primary key | WP Post ID</li>
+        <li><span class="code_notes">title</span> : string | WP Post Title</li>
+        <li><span class="code_notes">content</span> : string | WP Post Content</li>
+    </ul>
+    <?php
+}
+function notifications_notes_meta_boxes() {
+    add_meta_box('notifications_notes', 'NOTES', 'notifications_meta_box', 'notifications', 'normal');
+}
+add_action('add_meta_boxes', 'notifications_notes_meta_boxes');
+
+// Add custom meta boxes for Notes
 function notes_meta_box($post) {
     ?>
+    <ul class="list_notes">
+        <li><span class="code_notes">id</span> : primary key | WP Post ID</li>
+        <li><span class="code_notes">title</span> : string | WP Post Title</li>
+        <li><span class="code_notes">content</span> : string | WP Post Content</li>
+    </ul>
     <p class="paragraph_notes">Custom Fields:</p>
     <ul class="list_notes">
         <li><span class="code_notes">author_id</span> : string | Author Identifier</li>
@@ -448,35 +469,38 @@ function notes_meta_box($post) {
 
     <?php
 }
-
-// Add custom meta boxes for Notes
 function notes_notes_meta_boxes() {
     add_meta_box('notes_notes', 'NOTES', 'notes_meta_box', 'notes', 'normal');
 }
 add_action('add_meta_boxes', 'notes_notes_meta_boxes');
 
-
+// Add custom meta boxes for Events
 function events_rsvp_meta_box($post) {
     ?>
+    <ul class="list_notes">
+        <li><span class="code_notes">id</span> : primary key | WP Post ID</li>
+        <li><span class="code_notes">title</span> : string | WP Post Title</li>
+        <li><span class="code_notes">featured_image</span> : file | WP Post Featured Image</li>
+    </ul>
+    <hr />
     <p class="paragraph_notes">Custom Fields:</p>
     <ul class="list_notes">
-        <li><span class="code_notes">register_link</span> : string | Link to register for the event</li>
-        <li><span class="code_notes">visit_link</span> : string | Link to visit event details</li>
-        <li><strong>Featured Image</strong> : file | Event/RSVP Image</li>
+        <li><span class="code_notes">register_link</span> : string | Event Registration Link</li>
+        <li><span class="code_notes">visit_link</span> : string | Event  Details</li>
     </ul>
-
     <?php
 }
-
-// Add custom meta boxes for Events
 function events_rsvp_notes_meta_boxes() {
     add_meta_box('events_rsvp_notes', 'NOTES', 'events_rsvp_meta_box', 'events_rsvp', 'normal');
 }
 add_action('add_meta_boxes', 'events_rsvp_notes_meta_boxes');
 
-
+// Add custom meta boxes for Prayer Requests
 function prayer_requests_meta_box($post) {
     ?>
+    <ul class="list_notes">
+        <li><span class="code_notes">id</span> : primary key | WP Post ID</li>
+    </ul>
     <p class="paragraph_notes">Custom Fields:</p>
     <ul class="list_notes">
         <li><span class="code_notes">anonymous_post</span> : boolean | true / false</li>
@@ -487,14 +511,12 @@ function prayer_requests_meta_box($post) {
 
     <?php
 }
-
-// Add custom meta boxes for Prayer Requests
 function prayer_requests_notes_meta_boxes() {
     add_meta_box('prayer_requests_notes', 'NOTES', 'prayer_requests_meta_box', 'prayer_request', 'normal');
 }
 add_action('add_meta_boxes', 'prayer_requests_notes_meta_boxes');
 
-
+// Add custom meta boxes for FCM Token
 function fcm_token_meta_box($post) {
     ?>
     <p class="paragraph_notes">Custom Fields:</p>
@@ -507,17 +529,18 @@ function fcm_token_meta_box($post) {
 
     <?php
 }
-
-// Add custom meta boxes for FCM Token
 function fcm_token_notes_meta_boxes() {
     add_meta_box('fcm_token_notes', 'NOTES', 'fcm_token_meta_box', 'fcm_token', 'normal');
 }
 add_action('add_meta_boxes', 'fcm_token_notes_meta_boxes');
 
 
-
+// Add custom meta boxes for Contact Form
 function contact_form_meta_box($post) {
     ?>
+    <ul class="list_notes">
+        <li><span class="code_notes">id</span> : primary key | WP Post ID</li>
+    </ul>
     <p class="paragraph_notes">Custom Fields:</p>
     <ul class="list_notes">
         <li><span class="code_notes">first_name</span> : string </li>
@@ -529,30 +552,29 @@ function contact_form_meta_box($post) {
 
     <?php
 }
-
-// Add custom meta boxes for Contact Form
 function contact_form_notes_meta_boxes() {
     add_meta_box('contact_form_notes', 'NOTES', 'contact_form_meta_box', 'contact_form', 'normal');
 }
 add_action('add_meta_boxes', 'contact_form_notes_meta_boxes');
 
 
-
+// Add custom meta boxes for Media
 function media_videos_meta_box($post) {
     ?>
+    <ul class="list_notes">
+        <li><span class="code_notes">id</span> : primary key | WP Post ID</li>
+        <li><span class="code_notes">title</span> : string | WP Post Title</li>
+        <li><span class="code_notes">categories</span> : string | WP Post Categories</li>
+        <li><span class="code_notes">featured_image</span> : url | WP Post Featured Image</li>
+    </ul>
     <p class="paragraph_notes">Custom Fields:</p>
     <ul class="list_notes">
-        <li><span class="code_notes">title</span> : string | post title</li>
-        <li><span class="code_notes">featured_image</span> : url | post featured image</li>
-        <li><span class="code_notes">categories</span> : string | post categories</li>
         <li><span class="code_notes">youtube_link</span> : string | youtube url/link</li>
         <li><span class="code_notes">date</span> : string | date</li>
     </ul>
 
     <?php
 }
-
-// Add custom meta boxes for Media
 function media_videos_notes_meta_boxes() {
     add_meta_box('media_videos_notes', 'NOTES', 'media_videos_meta_box', 'media_videos', 'normal');
 }
@@ -568,15 +590,7 @@ function filter_events_rsvp_api_response($response, $post, $request) {
         'register_link' => get_post_meta($post->ID, 'register_link', true), 
         'visit_link' => get_post_meta($post->ID, 'visit_link', true), 
     ];
-
-    $response->data = $filtered_data;
-    
-    $post_date = $post->post_date; 
-    $formatted_date = str_replace('T', ' ', $post_date);
-
-    $response->data['published_datetime'] = $formatted_date;
-
-    return $response;
+    return $filtered_data;
 }
 add_filter('rest_prepare_events_rsvp', 'filter_events_rsvp_api_response', 10, 3);
 
@@ -587,15 +601,7 @@ function filter_notifications_api_response($response, $post, $request) {
         'title' => $response->data['title']['rendered'], 
         'content' => $response->data['content']['rendered'], 
     ];
-
-    $response->data = $filtered_data;
-    
-    $post_date = $post->post_date; 
-    $formatted_date = str_replace('T', ' ', $post_date); 
-
-    $response->data['published_datetime'] = $formatted_date;
-
-    return $response;
+    return $filtered_data;
 }
 add_filter('rest_prepare_notifications', 'filter_notifications_api_response', 10, 3);
 
@@ -608,14 +614,7 @@ function filter_prayer_request_api_response($response, $post, $request) {
         'email' => get_post_meta($post->ID, 'email', true),
         'content' => get_post_meta($post->ID, 'content', true),
     ];
-    $response->data = $filtered_data;
-    
-    $post_date = $post->post_date; 
-    $formatted_date = str_replace('T', ' ', $post_date); 
-
-    $response->data['published_datetime'] = $formatted_date;
-    
-    return $response;
+    return $filtered_data;
 }
 add_filter('rest_prepare_prayer_request', 'filter_prayer_request_api_response', 10, 3);
 
@@ -628,15 +627,7 @@ function filter_notes_api_response($response, $post, $request) {
         'content' => $response->data['content']['rendered'], 
         'author_id' => get_post_meta($post->ID, 'author_id', true),
     ];
-
-    $response->data = $filtered_data;
-    
-    $post_date = $post->post_date; 
-    $formatted_date = str_replace('T', ' ', $post_date); 
-
-    $response->data['published_datetime'] = $formatted_date;
-
-    return $response;
+    return $filtered_data;
 }
 add_filter('rest_prepare_notes', 'filter_notes_api_response', 10, 3);
 
@@ -671,14 +662,7 @@ function filter_fcm_token_api_response($response, $post, $request) {
         'apns_token' => get_post_meta($post->ID, 'apns_token', true),
         'platform' => get_post_meta($post->ID, 'platform', true),
     ];
-    $response->data = $filtered_data;
-    
-    $post_date = $post->post_date; 
-    $formatted_date = str_replace('T', ' ', $post_date); 
-
-    $response->data['published_datetime'] = $formatted_date;
-    
-    return $response;
+    return $filtered_data;
 }
 add_filter('rest_prepare_fcm_token', 'filter_fcm_token_api_response', 10, 3);
 
@@ -692,14 +676,7 @@ function filter_contact_form_api_response($response, $post, $request) {
         'phone' => get_post_meta($post->ID, 'phone', true),
         'comments' => get_post_meta($post->ID, 'comments', true),
     ];
-    $response->data = $filtered_data;
-    
-    $post_date = $post->post_date; 
-    $formatted_date = str_replace('T', ' ', $post_date); 
-
-    $response->data['published_datetime'] = $formatted_date;
-    
-    return $response;
+    return $filtered_data;
 }
 add_filter('rest_prepare_contact_form', 'filter_contact_form_api_response', 10, 3);
 
@@ -725,14 +702,6 @@ function filter_media_videos_api_response($response, $post, $request) {
         'youtube_link' => get_post_meta($post->ID, 'youtube_link', true), 
         'date' => get_post_meta($post->ID, 'date', true), 
     ];
-
-    $response->data = $filtered_data;
-    
-    $post_date = $post->post_date; 
-    $formatted_date = str_replace('T', ' ', $post_date);
-
-    $response->data['published_datetime'] = $formatted_date;
-
     return $filtered_data;
 }
 add_filter('rest_prepare_media_videos', 'filter_media_videos_api_response', 10, 3);
