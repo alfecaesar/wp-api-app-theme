@@ -1,25 +1,35 @@
 <?php
 
+// ------------------------------------------------------------------------------------
 // Enqueue admin styles
+// ------------------------------------------------------------------------------------
 add_action( 'admin_enqueue_scripts', 'load_admin_style' );
 function load_admin_style() {
     wp_enqueue_style( 'admin_css', get_template_directory_uri() . '/css/admin-style.css', false, rand(1, 999) );
 }
 
+// ------------------------------------------------------------------------------------
 // Enqueue theme styles
+// ------------------------------------------------------------------------------------
 function my_api_theme_enqueue_scripts() {
     wp_enqueue_style('tco-api-theme-style', get_stylesheet_uri());
 }
 add_action('wp_enqueue_scripts', 'my_api_theme_enqueue_scripts');
 
+// ------------------------------------------------------------------------------------
 // Featured Image
+// ------------------------------------------------------------------------------------
 add_theme_support('post-thumbnails');
 
+// ------------------------------------------------------------------------------------
 // Disable Block Editor
+// ------------------------------------------------------------------------------------
 add_filter('use_block_editor_for_post', '__return_false');
 
 
+// ------------------------------------------------------------------------------------
 // Register custom post types
+// ------------------------------------------------------------------------------------
 function register_custom_post_types() {
     // Events/RSVP Custom Post Type
     register_post_type('events_rsvp', [
@@ -130,7 +140,10 @@ function register_custom_post_types() {
 }
 add_action('init', 'register_custom_post_types');
 
+
+// ------------------------------------------------------------------------------------
 // Register custom meta fields
+// ------------------------------------------------------------------------------------
 function register_custom_meta_fields() {
     // Events/RSVP Meta Fields
     register_post_meta('events_rsvp', 'register_link', [
@@ -256,8 +269,9 @@ function register_custom_meta_fields() {
 add_action('init', 'register_custom_meta_fields');
 
 
-
+// ------------------------------------------------------------------------------------
 // Allow public submissions for Contact Form
+// ------------------------------------------------------------------------------------
 function handle_contact_form_submission(WP_REST_Request $request) {
     $title = sanitize_text_field($request->get_param('title'));
     $first_name = sanitize_text_field($request->get_param('first_name'));
@@ -289,7 +303,9 @@ function handle_contact_form_submission(WP_REST_Request $request) {
     return new WP_REST_Response(['message' => 'Contact Form submitted successfully.', 'post_id' => $post_id], 201);
 }
 
+// ------------------------------------------------------------------------------------
 // Allow public submissions for Prayer Requests
+// ------------------------------------------------------------------------------------
 function handle_prayer_request_submission(WP_REST_Request $request) {
     $title = sanitize_text_field($request->get_param('title'));
     $content = sanitize_text_field($request->get_param('content'));
@@ -319,7 +335,9 @@ function handle_prayer_request_submission(WP_REST_Request $request) {
     return new WP_REST_Response(['message' => 'Prayer request submitted successfully.', 'post_id' => $post_id], 201);
 }
 
+// ------------------------------------------------------------------------------------
 // Allow public submissions for Notes
+// ------------------------------------------------------------------------------------
 function handle_notes_submission(WP_REST_Request $request) {
     $title = sanitize_text_field($request->get_param('title'));
     $content = sanitize_text_field($request->get_param('content'));
@@ -345,7 +363,9 @@ function handle_notes_submission(WP_REST_Request $request) {
     return new WP_REST_Response(['message' => 'Note submitted successfully.', 'post_id' => $post_id], 201);
 }
 
+// ------------------------------------------------------------------------------------
 // Allow public submissions for FCM Token
+// ------------------------------------------------------------------------------------
 function handle_fcm_token_submission(WP_REST_Request $request) {
     $title = sanitize_text_field($request->get_param('title'));
     $uuid = sanitize_text_field($request->get_param('uuid'));
@@ -413,7 +433,9 @@ function register_fcm_token_endpoint() {
 add_action('rest_api_init', 'register_fcm_token_endpoint');
 
 
+// ------------------------------------------------------------------------------------
 // Register custom REST API route
+// ------------------------------------------------------------------------------------
 function register_route() {
     register_rest_route('custom/v1', '/prayer-request', [
         'methods' => 'POST',
@@ -439,7 +461,9 @@ function register_route() {
 add_action('rest_api_init', 'register_route');
 
 
+// ------------------------------------------------------------------------------------
 // Add custom meta boxes for Notifications
+// ------------------------------------------------------------------------------------
 function notifications_meta_box($post) {
     ?>
     <ul class="list_notes">
@@ -454,7 +478,10 @@ function notifications_notes_meta_boxes() {
 }
 add_action('add_meta_boxes', 'notifications_notes_meta_boxes');
 
+
+// ------------------------------------------------------------------------------------
 // Add custom meta boxes for Notes
+// ------------------------------------------------------------------------------------
 function notes_meta_box($post) {
     ?>
     <ul class="list_notes">
@@ -474,7 +501,10 @@ function notes_notes_meta_boxes() {
 }
 add_action('add_meta_boxes', 'notes_notes_meta_boxes');
 
+
+// ------------------------------------------------------------------------------------
 // Add custom meta boxes for Events
+// ------------------------------------------------------------------------------------
 function events_rsvp_meta_box($post) {
     ?>
     <ul class="list_notes">
@@ -495,7 +525,10 @@ function events_rsvp_notes_meta_boxes() {
 }
 add_action('add_meta_boxes', 'events_rsvp_notes_meta_boxes');
 
+
+// ------------------------------------------------------------------------------------
 // Add custom meta boxes for Prayer Requests
+// ------------------------------------------------------------------------------------
 function prayer_requests_meta_box($post) {
     ?>
     <ul class="list_notes">
@@ -516,7 +549,10 @@ function prayer_requests_notes_meta_boxes() {
 }
 add_action('add_meta_boxes', 'prayer_requests_notes_meta_boxes');
 
+
+// ------------------------------------------------------------------------------------
 // Add custom meta boxes for FCM Token
+// ------------------------------------------------------------------------------------
 function fcm_token_meta_box($post) {
     ?>
     <p class="paragraph_notes">Custom Fields:</p>
@@ -535,7 +571,9 @@ function fcm_token_notes_meta_boxes() {
 add_action('add_meta_boxes', 'fcm_token_notes_meta_boxes');
 
 
+// ------------------------------------------------------------------------------------
 // Add custom meta boxes for Contact Form
+// ------------------------------------------------------------------------------------
 function contact_form_meta_box($post) {
     ?>
     <ul class="list_notes">
@@ -558,7 +596,9 @@ function contact_form_notes_meta_boxes() {
 add_action('add_meta_boxes', 'contact_form_notes_meta_boxes');
 
 
+// ------------------------------------------------------------------------------------
 // Add custom meta boxes for Media
+// ------------------------------------------------------------------------------------
 function media_videos_meta_box($post) {
     ?>
     <ul class="list_notes">
@@ -581,7 +621,9 @@ function media_videos_notes_meta_boxes() {
 add_action('add_meta_boxes', 'media_videos_notes_meta_boxes');
 
 
+// ------------------------------------------------------------------------------------
 // Filter the API response for the events_rsvp post type
+// ------------------------------------------------------------------------------------
 function filter_events_rsvp_api_response($response, $post, $request) {
     $filtered_data = [
         'id' => $post->ID,
@@ -594,7 +636,10 @@ function filter_events_rsvp_api_response($response, $post, $request) {
 }
 add_filter('rest_prepare_events_rsvp', 'filter_events_rsvp_api_response', 10, 3);
 
+
+// ------------------------------------------------------------------------------------
 // Filter the API response for the notifications post type
+// ------------------------------------------------------------------------------------
 function filter_notifications_api_response($response, $post, $request) {
     $filtered_data = [
         'id' => $post->ID,
@@ -605,7 +650,10 @@ function filter_notifications_api_response($response, $post, $request) {
 }
 add_filter('rest_prepare_notifications', 'filter_notifications_api_response', 10, 3);
 
+
+// ------------------------------------------------------------------------------------
 // Filter the API response for the prayer request post type
+// ------------------------------------------------------------------------------------
 function filter_prayer_request_api_response($response, $post, $request) {
     $filtered_data = [
         'id' => $post->ID,
@@ -619,7 +667,9 @@ function filter_prayer_request_api_response($response, $post, $request) {
 add_filter('rest_prepare_prayer_request', 'filter_prayer_request_api_response', 10, 3);
 
 
+// ------------------------------------------------------------------------------------
 // Filter the API response for the notes post type
+// ------------------------------------------------------------------------------------
 function filter_notes_api_response($response, $post, $request) {
     $filtered_data = [
         'id' => $post->ID,
@@ -631,7 +681,10 @@ function filter_notes_api_response($response, $post, $request) {
 }
 add_filter('rest_prepare_notes', 'filter_notes_api_response', 10, 3);
 
+
+// ------------------------------------------------------------------------------------
 // Add custom query parameter for filtering by author_id
+// ------------------------------------------------------------------------------------
 function add_author_id_filter_to_rest_query($args, $request) {
     // Check if the 'author_id' parameter exists in the request
     if (isset($request['author_id'])) {
@@ -653,7 +706,9 @@ function add_author_id_filter_to_rest_query($args, $request) {
 add_filter('rest_notes_query', 'add_author_id_filter_to_rest_query', 10, 2);
 
 
+// ------------------------------------------------------------------------------------
 // Filter the API response for the FCM Token post type
+// ------------------------------------------------------------------------------------
 function filter_fcm_token_api_response($response, $post, $request) {
     $filtered_data = [
         'id' => $post->ID,
@@ -666,7 +721,10 @@ function filter_fcm_token_api_response($response, $post, $request) {
 }
 add_filter('rest_prepare_fcm_token', 'filter_fcm_token_api_response', 10, 3);
 
+
+// ------------------------------------------------------------------------------------
 // Filter the API response for the Contact Form post type
+// ------------------------------------------------------------------------------------
 function filter_contact_form_api_response($response, $post, $request) {
     $filtered_data = [
         'id' => $post->ID,
@@ -680,7 +738,10 @@ function filter_contact_form_api_response($response, $post, $request) {
 }
 add_filter('rest_prepare_contact_form', 'filter_contact_form_api_response', 10, 3);
 
+
+// ------------------------------------------------------------------------------------
 // Filter the API response for the media post type
+// ------------------------------------------------------------------------------------
 function filter_media_videos_api_response($response, $post, $request) {
     $categories = get_the_category($post->ID);
     $category_data = [];
@@ -707,7 +768,9 @@ function filter_media_videos_api_response($response, $post, $request) {
 add_filter('rest_prepare_media_videos', 'filter_media_videos_api_response', 10, 3);
 
 
+// ------------------------------------------------------------------------------------
 // API endpoint to delete a prayer request post
+// ------------------------------------------------------------------------------------
 function delete_prayer_request(WP_REST_Request $request) {
     $post_id = $request->get_param('id');
 
@@ -728,7 +791,10 @@ function delete_prayer_request(WP_REST_Request $request) {
     return new WP_REST_Response(['message' => 'Prayer request deleted successfully.', 'post_id' => $post_id], 200);
 }
 
+
+// ------------------------------------------------------------------------------------
 // API endpoint to delete a note post
+// ------------------------------------------------------------------------------------
 function delete_note(WP_REST_Request $request) {
     $post_id = $request->get_param('id');
 
@@ -749,6 +815,10 @@ function delete_note(WP_REST_Request $request) {
     return new WP_REST_Response(['message' => 'Note deleted successfully.', 'post_id' => $post_id], 200);
 }
 
+
+// ------------------------------------------------------------------------------------
+// API endpoint to update a note post
+// ------------------------------------------------------------------------------------
 function update_note_endpoint(WP_REST_Request $request) {
     $note_id = $request->get_param('id');
     $note_title = $request->get_param('title');
@@ -792,7 +862,10 @@ function update_note_endpoint(WP_REST_Request $request) {
     return new WP_Error('rest_no_data', 'No data provided to update.', ['status' => 400]);
 }
 
+
+// ------------------------------------------------------------------------------------
 // Register the API route
+// ------------------------------------------------------------------------------------
 function register_delete_endpoint() {
     register_rest_route('custom/v1', '/prayer-request/delete', [
         'methods' => 'DELETE',
@@ -819,6 +892,9 @@ function register_delete_endpoint() {
 add_action('rest_api_init', 'register_delete_endpoint');
 
 
+// ------------------------------------------------------------------------------------
+// FCM Token admin restriction
+// ------------------------------------------------------------------------------------
 function restrict_fcm_token_post_type_access() {
     if (current_user_can('administrator')) {
         add_action('admin_menu', function () {
@@ -855,6 +931,9 @@ function restrict_fcm_token_post_type_access() {
 }
 add_action('admin_init', 'restrict_fcm_token_post_type_access');
 
+// ------------------------------------------------------------------------------------
+// FCM Token admin restriction
+// ------------------------------------------------------------------------------------
 function restrict_fcm_token_post_update($data, $postarr) {
     if (current_user_can('administrator')) {
         if ($data['post_type'] === 'fcm_token') {
@@ -867,8 +946,9 @@ function restrict_fcm_token_post_update($data, $postarr) {
 add_filter('wp_insert_post_data', 'restrict_fcm_token_post_update', 10, 2);
 
 
-
+// ------------------------------------------------------------------------------------
 // Get Latest Notification post and return into array
+// ------------------------------------------------------------------------------------
 function get_latest_notification_array() {
     $args = array(
         'post_type' => 'notifications', 
@@ -900,8 +980,9 @@ function get_latest_notification_array() {
 }
 
 
-
-// Function to retrieve and send FCM notifications
+// ------------------------------------------------------------------------------------
+// Retrieve and send FCM notifications
+// ------------------------------------------------------------------------------------
 function send_fcm_notifications($authorization_token) {
     $args = array(
         'post_type'      => 'fcm_token',  
@@ -987,7 +1068,10 @@ function send_fcm_notifications($authorization_token) {
     endif;
 }
 
+
+// ------------------------------------------------------------------------------------
 // Add an admin menu and a button to trigger the function
+// ------------------------------------------------------------------------------------
 function add_fcm_button_to_admin_menu() {
     add_menu_page(
         'Push Notifications',       
@@ -1001,7 +1085,10 @@ function add_fcm_button_to_admin_menu() {
 }
 add_action('admin_menu', 'add_fcm_button_to_admin_menu');
 
+
+// ------------------------------------------------------------------------------------
 // Display the button and handle the POST request
+// ------------------------------------------------------------------------------------
 function display_fcm_button() {
     $tokens_status = [];
     $authorization_token = '';
@@ -1062,7 +1149,9 @@ function display_fcm_button() {
     <?php
 }
 
-
+// ------------------------------------------------------------------------------------
+// Convert APNS to TCM Token
+// ------------------------------------------------------------------------------------
 function convertAPNSToFCMToken($firebaseToken, $token) {
     // Prepare the data payload
     $data = [
